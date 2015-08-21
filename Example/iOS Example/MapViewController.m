@@ -22,12 +22,12 @@
 
 #import "MapViewController.h"
 
-#import <MapKit/MapKit.h>
+#import <GoogleMaps/GoogleMaps.h>
 
 #import "GeoJSONSerialization.h"
 
-@interface MapViewController () <MKMapViewDelegate>
-@property (readwrite, nonatomic, strong) MKMapView *mapView;
+@interface MapViewController () <GMSMapViewDelegate>
+@property (readwrite, nonatomic, strong) GMSMapView *mapView;
 @end
 
 @implementation MapViewController
@@ -37,7 +37,11 @@
 - (void)loadView {
     [super loadView];
 
-    self.mapView = [[MKMapView alloc] initWithFrame:self.view.bounds];
+    [GMSServices provideAPIKey:@"AIzaSyBFED3d-TFIJfnmlJF2JauRoxUMGBAHSxg"];
+
+    self.mapView = [[GMSMapView alloc] initWithFrame:self.view.bounds];
+    self.mapView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin;
+
     self.mapView.delegate = self;
     [self.view addSubview:self.mapView];
 }
@@ -51,51 +55,22 @@
     NSDictionary *geoJSON = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
     NSArray *shapes = [GeoJSONSerialization shapesFromGeoJSONFeatureCollection:geoJSON error:nil];
 
-    for (MKShape *shape in shapes) {
-        if ([shape isKindOfClass:[MKPointAnnotation class]]) {
-            [self.mapView addAnnotation:shape];
-        } else if ([shape conformsToProtocol:@protocol(MKOverlay)]) {
-            [self.mapView addOverlay:(id <MKOverlay>)shape];
+    for (GMSOverlay *shape in shapes) {
+        shape.map = self.mapView;
+
+        if ([shape isKindOfClass:[GMSMarker class]]) {
+
+        } else if ([shape isKindOfClass:[GMSPolygon class]]) {
+            GMSPolygon *poly = (GMSPolygon*)shape;
+            poly.fillColor = [UIColor colorWithRed:1.0f green:0.0f blue:0.0f alpha:0.5f];
+            poly.strokeColor = [UIColor redColor];
+            poly.strokeWidth = 3;
+        } else if ([shape isKindOfClass:[GMSPolyline class]]) {
+            GMSPolyline *line = (GMSPolyline*)shape;
+            line.strokeColor = [UIColor greenColor];
+            line.strokeWidth = 3.0f;
         }
     }
-}
-
-#pragma mark - MKMapViewDelegate
-
-- (MKAnnotationView *)mapView:(MKMapView *)mapView
-            viewForAnnotation:(id <MKAnnotation>)annotation
-{
-    static NSString * PinIdentifier = @"Pin";
-
-    MKAnnotationView *annotationView = [mapView dequeueReusableAnnotationViewWithIdentifier:PinIdentifier];
-
-    if (!annotationView) {
-        annotationView = [[MKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:PinIdentifier];
-    };
-
-    annotationView.hidden = ![annotation isKindOfClass:[MKPointAnnotation class]];
-
-    return annotationView;
-}
-
-- (MKOverlayRenderer *)mapView:(MKMapView *)mapView
-            rendererForOverlay:(id <MKOverlay>)overlay
-{
-    MKOverlayRenderer *renderer = nil;
-    if ([overlay isKindOfClass:[MKPolyline class]]) {
-        renderer = [[MKPolylineRenderer alloc] initWithPolyline:(MKPolyline *)overlay];
-        ((MKPolylineRenderer *)renderer).strokeColor = [UIColor greenColor];
-        ((MKPolylineRenderer *)renderer).lineWidth = 3.0f;
-    } else if ([overlay isKindOfClass:[MKPolygon class]]) {
-        renderer = [[MKPolygonRenderer alloc] initWithPolygon:(MKPolygon *)overlay];
-        ((MKPolygonRenderer *)renderer).strokeColor = [UIColor redColor];
-        ((MKPolygonRenderer *)renderer).fillColor = [UIColor colorWithRed:1.0f green:0.0f blue:0.0f alpha:0.5f];
-        ((MKPolygonRenderer *)renderer).lineWidth = 3.0f;
-    }
-
-    renderer.alpha = 0.5;
-
-    return renderer;
 }
 
 @end

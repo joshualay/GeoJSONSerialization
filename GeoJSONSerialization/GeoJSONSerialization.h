@@ -21,19 +21,19 @@
 // THE SOFTWARE.
 
 #import <Foundation/Foundation.h>
-#import <MapKit/MapKit.h>
+#import <GoogleMaps/GoogleMaps.h>
 
 /**
  
  */
 @interface GeoJSONSerialization : NSObject
 
-/// @name Creating MKShape objects from GeoJSON
+/// @name Creating GMSOverlay objects from GeoJSON
 
 /**
  
  */
-+ (MKShape *)shapeFromGeoJSONFeature:(NSDictionary *)feature
++ (GMSOverlay *)shapeFromGeoJSONFeature:(NSDictionary *)feature
                                error:(NSError * __autoreleasing *)error;
 
 /**
@@ -42,12 +42,12 @@
 + (NSArray *)shapesFromGeoJSONFeatureCollection:(NSDictionary *)featureCollection
                                           error:(NSError * __autoreleasing *)error;
 
-/// @name Creating GeoJSON from MKShape objects
+/// @name Creating GeoJSON from GMSOverlay objects
 
 /**
  
  */
-+ (NSDictionary *)GeoJSONFeatureFromShape:(MKShape *)shape
++ (NSDictionary *)GeoJSONFeatureFromShape:(GMSOverlay *)shape
                                properties:(NSDictionary *)properties
                                     error:(NSError * __autoreleasing *)error;
 

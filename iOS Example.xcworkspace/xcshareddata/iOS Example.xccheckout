@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>5D7351EC-151D-4077-90B9-4F615023923D</string>
+	<key>IDESourceControlProjectName</key>
+	<string>iOS Example</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>C1C751C1C7859B27FBAA934D9D1D26A5A8A9CA14</key>
+		<string>github.com:joshualay/GeoJSONSerialization.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>iOS Example.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>C1C751C1C7859B27FBAA934D9D1D26A5A8A9CA14</key>
+		<string>..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:joshualay/GeoJSONSerialization.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>C1C751C1C7859B27FBAA934D9D1D26A5A8A9CA14</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>C1C751C1C7859B27FBAA934D9D1D26A5A8A9CA14</string>
+			<key>IDESourceControlWCCName</key>
+			<string>GeoJSONSerialization</string>
+		</dict>
+	</array>
+</dict>
+</plist>

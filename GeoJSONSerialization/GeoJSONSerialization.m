@@ -54,39 +54,44 @@ static inline CLLocationCoordinate2D * CLCreateLocationCoordinatesFromCoordinate
     return locationCoordinates;
 }
 
-static MKPointAnnotation * MKPointAnnotationFromGeoJSONPointFeature(NSDictionary *feature) {
+static GMSMarker * GMSMarkerFromGeoJSONPointFeature(NSDictionary *feature) {
     NSDictionary *geometry = feature[@"geometry"];
 
     NSCParameterAssert([geometry[@"type"] isEqualToString:@"Point"]);
 
-    MKPointAnnotation *pointAnnotation = [[MKPointAnnotation alloc] init];
-    pointAnnotation.coordinate = CLLocationCoordinateFromCoordinates(geometry[@"coordinates"]);
+    GMSMarker *pointAnnotation = [[GMSMarker alloc] init];
+    pointAnnotation.position = CLLocationCoordinateFromCoordinates(geometry[@"coordinates"]);
 
     NSDictionary *properties = [NSDictionary dictionaryWithDictionary:feature[@"properties"]];
     pointAnnotation.title = properties[@"title"];
-    pointAnnotation.subtitle = properties[@"subtitle"];
 
     return pointAnnotation;
 }
 
-static MKPolyline * MKPolylineFromGeoJSONLineStringFeature(NSDictionary *feature) {
+static GMSPolyline * GMSPolylineFromGeoJSONLineStringFeature(NSDictionary *feature) {
     NSDictionary *geometry = feature[@"geometry"];
 
     NSCParameterAssert([geometry[@"type"] isEqualToString:@"LineString"]);
 
     NSArray *coordinatePairs = geometry[@"coordinates"];
     CLLocationCoordinate2D *polylineCoordinates = CLCreateLocationCoordinatesFromCoordinatePairs(coordinatePairs);
-    MKPolyline *polyLine = [MKPolyline polylineWithCoordinates:polylineCoordinates count:[coordinatePairs count]];
-    free(polylineCoordinates);
+
+    GMSMutablePath *path = [GMSMutablePath path];
+    for( NSInteger i = 0; i < [coordinatePairs count]; i++)
+    {
+        CLLocationCoordinate2D coord = polylineCoordinates[i];
+        [path addCoordinate:coord];
+    }
+
+    GMSPolyline *polyLine = [GMSPolyline polylineWithPath:path];
 
     NSDictionary *properties = [NSDictionary dictionaryWithDictionary:feature[@"properties"]];
     polyLine.title = properties[@"title"];
-    polyLine.subtitle = properties[@"subtitle"];
 
     return polyLine;
 }
 
-static MKPolygon * MKPolygonFromGeoJSONPolygonFeature(NSDictionary *feature) {
+static GMSPolygon * GMSPolygonFromGeoJSONPolygonFeature(NSDictionary *feature) {
     NSDictionary *geometry = feature[@"geometry"];
 
     NSCParameterAssert([geometry[@"type"] isEqualToString:@"Polygon"]);
@@ -96,12 +101,19 @@ static MKPolygon * MKPolygonFromGeoJSONPolygonFeature(NSDictionary *feature) {
     NSMutableArray *mutablePolygons = [NSMutableArray arrayWithCapacity:[coordinateSets count]];
     for (NSArray *coordinatePairs in coordinateSets) {
         CLLocationCoordinate2D *polygonCoordinates = CLCreateLocationCoordinatesFromCoordinatePairs(coordinatePairs);
-        MKPolygon *polygon = [MKPolygon polygonWithCoordinates:polygonCoordinates count:[coordinatePairs count]];
+        GMSMutablePath *path = [GMSMutablePath path];
+        for( NSInteger i = 0; i < [coordinatePairs count]; i++)
+        {
+            CLLocationCoordinate2D coord = polygonCoordinates[i];
+            [path addCoordinate:coord];
+        }
+
+        GMSPolygon *polygon = [GMSPolygon polygonWithPath:path];
         [mutablePolygons addObject:polygon];
         free(polygonCoordinates);
     }
 
-    MKPolygon *polygon = nil;
+    GMSPolygon *polygon = nil;
     switch ([mutablePolygons count]) {
         case 0:
             return nil;
@@ -109,16 +121,14 @@ static MKPolygon * MKPolygonFromGeoJSONPolygonFeature(NSDictionary *feature) {
             polygon = [mutablePolygons firstObject];
             break;
         default: {
-            MKPolygon *exteriorPolygon = [mutablePolygons firstObject];
-            NSArray *interiorPolygons = [mutablePolygons subarrayWithRange:NSMakeRange(1, [mutablePolygons count] - 1)];
-            polygon = [MKPolygon polygonWithPoints:exteriorPolygon.points count:exteriorPolygon.pointCount interiorPolygons:interiorPolygons];
+// TODO: Google Maps current does not support interior polygons. Once the API does add it in here.
+// https://code.google.com/p/gmaps-api-issues/issues/detail?id=5464&q=apitype=IosSDK&colspec=ID%20Type%20Status%20Introduced%20Fixed%20Summary%20Stars%20ApiType%20Internal
         }
             break;
     }
 
     NSDictionary *properties = [NSDictionary dictionaryWithDictionary:feature[@"properties"]];
     polygon.title = properties[@"title"];
-    polygon.subtitle = properties[@"subtitle"];
 
     return polygon;
 }
@@ -144,7 +154,7 @@ static NSArray * MKPointAnnotationsFromGeoJSONMultiPointFeature(NSDictionary *fe
                                      @"properties": properties
                                      };
 
-        [mutablePointAnnotations addObject:MKPointAnnotationFromGeoJSONPointFeature(subFeature)];
+        [mutablePointAnnotations addObject:GMSMarkerFromGeoJSONPointFeature(subFeature)];
     }
 
     return [NSArray arrayWithArray:mutablePointAnnotations];
@@ -169,7 +179,7 @@ static NSArray * MKPolylinesFromGeoJSONMultiLineStringFeature(NSDictionary *feat
                                      @"properties": properties
                                      };
 
-        [mutablePolylines addObject:MKPolylineFromGeoJSONLineStringFeature(subFeature)];
+        [mutablePolylines addObject:GMSPolylineFromGeoJSONLineStringFeature(subFeature)];
     }
 
     return [NSArray arrayWithArray:mutablePolylines];
@@ -194,7 +204,7 @@ static NSArray * MKPolygonsFromGeoJSONMultiPolygonFeature(NSDictionary *feature)
                                      @"properties": properties
                                      };
 
-        [mutablePolylines addObject:MKPolygonFromGeoJSONPolygonFeature(subFeature)];
+        [mutablePolylines addObject:GMSPolygonFromGeoJSONPolygonFeature(subFeature)];
     }
 
     return [NSArray arrayWithArray:mutablePolylines];
@@ -202,17 +212,17 @@ static NSArray * MKPolygonsFromGeoJSONMultiPolygonFeature(NSDictionary *feature)
 
 #pragma mark -
 
-static id MKShapeFromGeoJSONFeature(NSDictionary *feature) {
+static id GMSPolygonFromGeoJSONFeature(NSDictionary *feature) {
     NSCParameterAssert([feature[@"type"] isEqualToString:@"Feature"]);
 
     NSDictionary *geometry = feature[@"geometry"];
     NSString *type = geometry[@"type"];
     if ([type isEqualToString:@"Point"]) {
-        return MKPointAnnotationFromGeoJSONPointFeature(feature);
+        return GMSMarkerFromGeoJSONPointFeature(feature);
     } else if ([type isEqualToString:@"LineString"]) {
-        return MKPolylineFromGeoJSONLineStringFeature(feature);
+        return GMSPolylineFromGeoJSONLineStringFeature(feature);
     } else if ([type isEqualToString:@"Polygon"]) {
-        return MKPolygonFromGeoJSONPolygonFeature(feature);
+        return GMSPolygonFromGeoJSONPolygonFeature(feature);
     } else if ([type isEqualToString:@"MultiPoint"]) {
         return MKPointAnnotationsFromGeoJSONMultiPointFeature(feature);
     } else if ([type isEqualToString:@"MultiLineString"]) {
@@ -224,12 +234,12 @@ static id MKShapeFromGeoJSONFeature(NSDictionary *feature) {
     return nil;
 }
 
-static NSArray * MKShapesFromGeoJSONFeatureCollection(NSDictionary *featureCollection) {
+static NSArray * GMSOverlaysFromGeoJSONFeatureCollection(NSDictionary *featureCollection) {
     NSCParameterAssert([featureCollection[@"type"] isEqualToString:@"FeatureCollection"]);
 
     NSMutableArray *mutableShapes = [NSMutableArray array];
     for (NSDictionary *feature in featureCollection[@"features"]) {
-        id shape = MKShapeFromGeoJSONFeature(feature);
+        id shape = GMSPolygonFromGeoJSONFeature(feature);
         if (shape) {
             if ([shape isKindOfClass:[NSArray class]]) {
                 [mutableShapes addObjectsFromArray:shape];
@@ -244,23 +254,19 @@ static NSArray * MKShapesFromGeoJSONFeatureCollection(NSDictionary *featureColle
 
 #pragma mark -
 
-static inline NSDictionary * GeoJSONPropertiesForShape(MKShape *shape) {
+static inline NSDictionary * GeoJSONPropertiesForShape(GMSOverlay *shape) {
     NSMutableDictionary *mutableProperties = [NSMutableDictionary dictionary];
     if (shape.title) {
         mutableProperties[@"title"] = shape.title;
     }
 
-    if (shape.subtitle) {
-        mutableProperties[@"subtitle"] = shape.subtitle;
-    }
-
     return [NSDictionary dictionaryWithDictionary:mutableProperties];
 }
 
-static NSDictionary * GeoJSONPointFeatureGeometryFromPointAnnotation(MKPointAnnotation *pointAnnotation) {
+static NSDictionary * GeoJSONPointFeatureGeometryFromPointAnnotation(GMSMarker *pointAnnotation) {
     NSArray *coordinates = @[
-                             @(pointAnnotation.coordinate.longitude),
-                             @(pointAnnotation.coordinate.latitude)
+                             @(pointAnnotation.position.longitude),
+                             @(pointAnnotation.position.latitude)
                              ];
 
     return @{
@@ -269,11 +275,10 @@ static NSDictionary * GeoJSONPointFeatureGeometryFromPointAnnotation(MKPointAnno
              };
 }
 
-static NSDictionary * GeoJSONLineStringFeatureGeometryFromPolyline(MKPolyline *polyline) {
-    NSMutableArray *mutableCoordinatePairs = [NSMutableArray arrayWithCapacity:[polyline pointCount]];
-    for (NSUInteger idx = 0; idx < [polyline pointCount]; idx++) {
-        CLLocationCoordinate2D coordinate;
-        [polyline getCoordinates:&coordinate range:NSMakeRange(idx, 1)];
+static NSDictionary * GeoJSONLineStringFeatureGeometryFromPolyline(GMSPolyline *polyline) {
+    NSMutableArray *mutableCoordinatePairs = [NSMutableArray arrayWithCapacity:[polyline.path count]];
+    for (NSUInteger idx = 0; idx < [polyline.path count]; idx++) {
+        CLLocationCoordinate2D coordinate = [polyline.path coordinateAtIndex:idx];
         [mutableCoordinatePairs addObject:@[@(coordinate.longitude), @(coordinate.latitude)]];
     }
 
@@ -283,19 +288,15 @@ static NSDictionary * GeoJSONLineStringFeatureGeometryFromPolyline(MKPolyline *p
              };
 }
 
-static NSDictionary * GeoJSONPolygonFeatureGeometryFromPolygon(MKPolygon *polygon) {
-    NSMutableArray *mutableCoordinateSets = [NSMutableArray arrayWithCapacity:[polygon.interiorPolygons count] + 1];
+static NSDictionary * GeoJSONPolygonFeatureGeometryFromPolygon(GMSPolygon *polygon) {
+    // TODO: Google Maps current does not support interior polygons. Once the API does add it in here.
 
+    NSMutableArray *mutableCoordinateSets = [NSMutableArray arrayWithCapacity:1];
     NSMutableArray *mutablePolygons = [NSMutableArray arrayWithObject:polygon];
-    if ([polygon.interiorPolygons count] > 0) {
-        [mutablePolygons addObjectsFromArray:polygon.interiorPolygons];
-    }
-
-    for (MKPolygon *interiorOrExteriorPolygon in mutablePolygons) {
-        NSMutableArray *mutableCoordinatePairs = [NSMutableArray arrayWithCapacity:[interiorOrExteriorPolygon pointCount]];
-        for (NSUInteger idx = 0; idx < [interiorOrExteriorPolygon pointCount]; idx++) {
-            CLLocationCoordinate2D coordinate;
-            [interiorOrExteriorPolygon getCoordinates:&coordinate range:NSMakeRange(idx, 1)];
+    for (GMSPolygon *polygon in mutablePolygons) {
+        NSMutableArray *mutableCoordinatePairs = [NSMutableArray arrayWithCapacity:[polygon.path count]];
+        for (NSUInteger idx = 0; idx < [polygon.path count]; idx++) {
+            CLLocationCoordinate2D coordinate = [polygon.path coordinateAtIndex:idx];
             [mutableCoordinatePairs addObject:@[@(coordinate.longitude), @(coordinate.latitude)]];
         }
 
@@ -308,14 +309,14 @@ static NSDictionary * GeoJSONPolygonFeatureGeometryFromPolygon(MKPolygon *polygo
              };
 }
 
-static NSDictionary * GeoJSONFeatureFromShape(MKShape *shape, NSDictionary *properties) {
+static NSDictionary * GeoJSONFeatureFromShape(GMSOverlay *shape, NSDictionary *properties) {
     NSDictionary *geometry = nil;
-    if ([shape isKindOfClass:[MKPolygon class]]) {
-        geometry = GeoJSONPolygonFeatureGeometryFromPolygon((MKPolygon *)shape);
-    } else if ([shape isKindOfClass:[MKPolyline class]]) {
-        geometry = GeoJSONLineStringFeatureGeometryFromPolyline((MKPolyline *)shape);
-    } else if ([shape isKindOfClass:[MKPointAnnotation class]]) {
-        geometry = GeoJSONPointFeatureGeometryFromPointAnnotation((MKPointAnnotation *)shape);
+    if ([shape isKindOfClass:[GMSPolygon class]]) {
+        geometry = GeoJSONPolygonFeatureGeometryFromPolygon((GMSPolygon *)shape);
+    } else if ([shape isKindOfClass:[GMSPolyline class]]) {
+        geometry = GeoJSONLineStringFeatureGeometryFromPolyline((GMSPolyline *)shape);
+    } else if ([shape isKindOfClass:[GMSMarker class]]) {
+        geometry = GeoJSONPointFeatureGeometryFromPointAnnotation((GMSMarker *)shape);
     } else {
         return nil;
     }
@@ -333,7 +334,7 @@ static NSDictionary * GeoJSONFeatureFromShape(MKShape *shape, NSDictionary *prop
 static NSDictionary * GeoJSONFeatureCollectionFromShapes(NSArray *shapes, NSArray *arrayOfProperties) {
     NSMutableArray *mutableFeatures = [NSMutableArray arrayWithCapacity:[shapes count]];
 
-    [shapes enumerateObjectsUsingBlock:^(MKShape *shape, NSUInteger idx, __unused BOOL *stop) {
+    [shapes enumerateObjectsUsingBlock:^(GMSOverlay *shape, NSUInteger idx, __unused BOOL *stop) {
         NSDictionary *properties = arrayOfProperties[idx];
         NSDictionary *feature = GeoJSONFeatureFromShape(shape, properties);
         if (feature) {
@@ -352,11 +353,11 @@ static NSDictionary * GeoJSONFeatureCollectionFromShapes(NSArray *shapes, NSArra
 
 @implementation GeoJSONSerialization
 
-+ (MKShape *)shapeFromGeoJSONFeature:(NSDictionary *)feature
++ (GMSOverlay *)shapeFromGeoJSONFeature:(NSDictionary *)feature
                                error:(NSError * __autoreleasing *)error
 {
     @try {
-        return MKShapeFromGeoJSONFeature(feature);
+        return GMSPolygonFromGeoJSONFeature(feature);
     }
     @catch (NSException *exception) {
         if (error) {
@@ -376,7 +377,7 @@ static NSDictionary * GeoJSONFeatureCollectionFromShapes(NSArray *shapes, NSArra
                                           error:(NSError * __autoreleasing *)error
 {
     @try {
-        return MKShapesFromGeoJSONFeatureCollection(featureCollection);
+        return GMSOverlaysFromGeoJSONFeatureCollection(featureCollection);
     }
     @catch (NSException *exception) {
         if (error) {
@@ -394,7 +395,7 @@ static NSDictionary * GeoJSONFeatureCollectionFromShapes(NSArray *shapes, NSArra
 
 #pragma mark -
 
-+ (NSDictionary *)GeoJSONFeatureFromShape:(MKShape *)shape
++ (NSDictionary *)GeoJSONFeatureFromShape:(GMSOverlay *)shape
                                properties:(NSDictionary *)properties
                                     error:(NSError * __autoreleasing *)error
 {

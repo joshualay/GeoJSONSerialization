@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		79F4F71A46187EBB864148F4 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 646B26A7E9AE947C56303AC6 /* libPods.a */; };
 		F80DAA2918E3CD4E0014928D /* MapViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F80DAA2818E3CD4E0014928D /* MapViewController.m */; };
 		F80DAA2D18E3D9E20014928D /* map.geojson in Resources */ = {isa = PBXBuildFile; fileRef = F80DAA2C18E3D9E20014928D /* map.geojson */; };
 		F876C32E18EAFDA200D18BE0 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F876C32D18EAFDA200D18BE0 /* CoreLocation.framework */; };
@@ -37,6 +38,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		646B26A7E9AE947C56303AC6 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		7E3991E7CC197DF442D3F05D /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "../Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
+		AAC303943A648D57946711D0 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "../Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 		F80DAA2718E3CD4E0014928D /* MapViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MapViewController.h; sourceTree = "<group>"; };
 		F80DAA2818E3CD4E0014928D /* MapViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MapViewController.m; sourceTree = "<group>"; };
 		F80DAA2C18E3D9E20014928D /* map.geojson */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = map.geojson; sourceTree = "<group>"; };
@@ -72,6 +76,7 @@
 				F8A08C6318E3377E00258B27 /* CoreGraphics.framework in Frameworks */,
 				F8A08C6518E3377E00258B27 /* UIKit.framework in Frameworks */,
 				F8A08C6118E3377E00258B27 /* Foundation.framework in Frameworks */,
+				79F4F71A46187EBB864148F4 /* libPods.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +93,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8232D6CCD45F5CD829D7BACA /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				AAC303943A648D57946711D0 /* Pods.debug.xcconfig */,
+				7E3991E7CC197DF442D3F05D /* Pods.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 		F8A08C5418E3377E00258B27 = {
 			isa = PBXGroup;
 			children = (
@@ -96,6 +110,7 @@
 				F8A08C5F18E3377E00258B27 /* Frameworks */,
 				F8A08C5E18E3377E00258B27 /* Products */,
 				F8A08C8F18E337C700258B27 /* Vendor */,
+				8232D6CCD45F5CD829D7BACA /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -117,6 +132,7 @@
 				F8A08C6218E3377E00258B27 /* CoreGraphics.framework */,
 				F8A08C6418E3377E00258B27 /* UIKit.framework */,
 				F8A08C7918E3377E00258B27 /* XCTest.framework */,
+				646B26A7E9AE947C56303AC6 /* libPods.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -188,9 +204,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F8A08C8918E3377E00258B27 /* Build configuration list for PBXNativeTarget "iOS Example" */;
 			buildPhases = (
+				B22D97C423BA12532BD11FD9 /* Check Pods Manifest.lock */,
 				F8A08C5918E3377E00258B27 /* Sources */,
 				F8A08C5A18E3377E00258B27 /* Frameworks */,
 				F8A08C5B18E3377E00258B27 /* Resources */,
+				2042A3708E5BC7F45ED4F5ED /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -271,6 +289,39 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		2042A3708E5BC7F45ED4F5ED /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/../Pods/Target Support Files/Pods/Pods-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B22D97C423BA12532BD11FD9 /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F8A08C5918E3377E00258B27 /* Sources */ = {
@@ -394,6 +445,7 @@
 		};
 		F8A08C8A18E3377E00258B27 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AAC303943A648D57946711D0 /* Pods.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -408,6 +460,7 @@
 		};
 		F8A08C8B18E3377E00258B27 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7E3991E7CC197DF442D3F05D /* Pods.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -430,7 +483,7 @@
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "iOS Example/iOS Example-Prefix.pch";
+				GCC_PREFIX_HEADER = "iOS Example/Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -452,7 +505,7 @@
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "iOS Example/iOS Example-Prefix.pch";
+				GCC_PREFIX_HEADER = "iOS Example/Prefix.pch";
 				INFOPLIST_FILE = "iOS ExampleTests/iOS ExampleTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUNDLE_LOADER)";
