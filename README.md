@@ -1,31 +1,37 @@
 GeoJSONSerialization
 ====================
 
-`GeoJSONSerialization` encodes and decodes between [GeoJSON](http://geojson.org) and [MapKit](https://developer.apple.com/library/ios/documentation/MapKit/Reference/MapKit_Framework_Reference/_index.html) shapes, following the API conventions of Foundation's `NSJSONSerialization` class.
+`GeoJSONSerialization` encodes and decodes between [GeoJSON](http://geojson.org) and [GoogleMaps](https://developers.google.com/maps/documentation/ios/reference/index) shapes, following the API conventions of Foundation's `NSJSONSerialization` class.
 
 ## Usage
 
 ### Decoding
 
 ```objective-c
-#import <MapKit/MapKit.h>
+#import <GoogleMaps/GoogleMaps.h>
 #import "GeoJSONSerialization.h"
 
-NSURL *URL = [[NSBundle mainBundle] URLForResource:@"map" withExtension:@"geojson"];
-NSData *data = [NSData dataWithContentsOfURL:URL];
+NSData *data = [NSData dataWithContentsOfURL:[[NSBundle mainBundle] URLForResource:@"map" withExtension:@"geojson"]];
 NSDictionary *geoJSON = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
 NSArray *shapes = [GeoJSONSerialization shapesFromGeoJSONFeatureCollection:geoJSON error:nil];
 
-for (MKShape *shape in shapes) {
-    if ([shape isKindOfClass:[MKPointAnnotation class]]) {
-        [mapView addAnnotation:shape];
-    } else if ([shape conformsToProtocol:@protocol(MKOverlay)]) {
-        [mapView addOverlay:(id <MKOverlay>)shape];
+for (GMSOverlay *shape in shapes) {
+    shape.map = self.mapView;
+
+    if ([shape isKindOfClass:[GMSMarker class]]) {
+
+    } else if ([shape isKindOfClass:[GMSPolygon class]]) {
+        GMSPolygon *poly = (GMSPolygon*)shape;
+        poly.fillColor = [UIColor colorWithRed:1.0f green:0.0f blue:0.0f alpha:0.5f];
+        poly.strokeColor = [UIColor redColor];
+        poly.strokeWidth = 3;
+    } else if ([shape isKindOfClass:[GMSPolyline class]]) {
+        GMSPolyline *line = (GMSPolyline*)shape;
+        line.strokeColor = [UIColor greenColor];
+        line.strokeWidth = 3.0f;
     }
 }
 ```
-
-> After implementing the necessary `MKMapViewDelegate` methods, the resulting map will look [something like this](https://github.com/mattt/GeoJSONSerialization/blob/master/Example/iOS%20Example/map.geojson).
 
 ---
 
