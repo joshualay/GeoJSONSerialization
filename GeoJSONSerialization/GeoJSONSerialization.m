@@ -84,6 +84,7 @@ static GMSPolyline * GMSPolylineFromGeoJSONLineStringFeature(NSDictionary *featu
     }
 
     GMSPolyline *polyLine = [GMSPolyline polylineWithPath:path];
+    free(polylineCoordinates);
 
     NSDictionary *properties = [NSDictionary dictionaryWithDictionary:feature[@"properties"]];
     polyLine.title = properties[@"title"];
@@ -121,8 +122,11 @@ static GMSPolygon * GMSPolygonFromGeoJSONPolygonFeature(NSDictionary *feature) {
             polygon = [mutablePolygons firstObject];
             break;
         default: {
-// TODO: Google Maps current does not support interior polygons. Once the API does add it in here.
-// https://code.google.com/p/gmaps-api-issues/issues/detail?id=5464&q=apitype=IosSDK&colspec=ID%20Type%20Status%20Introduced%20Fixed%20Summary%20Stars%20ApiType%20Internal
+            polygon = [mutablePolygons firstObject];
+            NSArray* interiorPolygons = [mutablePolygons subarrayWithRange:NSMakeRange(1, [mutablePolygons count] - 1)];
+            NSArray* interiorPaths = [interiorPolygons valueForKey:@"path"];
+            if ([interiorPaths count] > 0)
+                polygon.holes = interiorPaths;
         }
             break;
     }
@@ -289,12 +293,17 @@ static NSDictionary * GeoJSONLineStringFeatureGeometryFromPolyline(GMSPolyline *
 }
 
 static NSDictionary * GeoJSONPolygonFeatureGeometryFromPolygon(GMSPolygon *polygon) {
-    // TODO: Google Maps current does not support interior polygons. Once the API does add it in here.
+    NSMutableArray *mutableCoordinateSets = [NSMutableArray arrayWithCapacity:[polygon.holes count] + 1];
 
-    NSMutableArray *mutableCoordinateSets = [NSMutableArray arrayWithCapacity:1];
     NSMutableArray *mutablePolygons = [NSMutableArray arrayWithObject:polygon];
-    for (GMSPolygon *polygon in mutablePolygons) {
-        NSMutableArray *mutableCoordinatePairs = [NSMutableArray arrayWithCapacity:[polygon.path count]];
+    if ([polygon.holes count] > 0) {
+        for (GMSPath* path in polygon.holes) {
+            [mutablePolygons addObject:[GMSPolygon polygonWithPath:path]];
+        }
+    }
+
+    for (GMSPolygon *interiorOrExteriorPolygon in mutablePolygons) {
+        NSMutableArray *mutableCoordinatePairs = [NSMutableArray arrayWithCapacity:[interiorOrExteriorPolygon.path count]];
         for (NSUInteger idx = 0; idx < [polygon.path count]; idx++) {
             CLLocationCoordinate2D coordinate = [polygon.path coordinateAtIndex:idx];
             [mutableCoordinatePairs addObject:@[@(coordinate.longitude), @(coordinate.latitude)]];
